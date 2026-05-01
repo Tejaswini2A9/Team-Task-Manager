@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const sequelize = require('./config/database');
 const authRoutes = require('./routes/authRoutes');
 const projectRoutes = require('./routes/projectRoutes');
@@ -22,6 +23,12 @@ app.use('/api/teams', teamRoutes);
 app.use('/api/tickets', ticketRoutes);
 app.use('/api/notifications', notificationRoutes);
 
+// Serve frontend in production
+app.use(express.static(path.join(__dirname, '../frontend/dist')));
+
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
+});
 const PORT = process.env.PORT || 5000;
 
 sequelize.sync({ alter: true }).then(() => {
