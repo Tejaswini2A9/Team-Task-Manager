@@ -11,18 +11,24 @@ const Login = () => {
   const { login, verifyLogin } = useContext(AuthContext);
   const navigate = useNavigate();
 
+  const [error, setError] = useState('');
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
     try {
       if (step === 1) {
-        await login(email, password, role);
+        const result = await login(email, password, role);
+        if (!result.emailSent) {
+          setError('Credentials valid but email delivery failed. Check server console for OTP.');
+        }
         setStep(2);
       } else {
         await verifyLogin(email, otp);
         navigate('/');
       }
     } catch (err) {
-      alert(err.response?.data?.message || 'Login failed');
+      setError(err.response?.data?.message || 'Login failed. Please try again.');
     }
   };
 
@@ -67,6 +73,12 @@ const Login = () => {
               </div>
             )}
             
+            {error && (
+              <div className="text-sm text-red-500 bg-red-50 border border-red-100 rounded-xl px-4 py-2">
+                {error}
+              </div>
+            )}
+
             <button type="submit" className="w-full bg-brand-light text-brand-dark font-bold text-sm tracking-wider py-4 rounded-full mt-8 shadow-[0_10px_20px_rgba(94,209,155,0.3)] hover:-translate-y-0.5 transition-all">
               {step === 1 ? 'SIGN IN' : 'VERIFY OTP'}
             </button>

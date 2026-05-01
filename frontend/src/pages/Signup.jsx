@@ -12,18 +12,24 @@ const Signup = () => {
   const { signup, verifySignup } = useContext(AuthContext);
   const navigate = useNavigate();
 
+  const [error, setError] = useState('');
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
     try {
       if (step === 1) {
-        await signup(name, email, password, role);
+        const result = await signup(name, email, password, role);
+        if (!result.emailSent) {
+          setError('Account created but email delivery failed. Check server console for OTP.');
+        }
         setStep(2);
       } else {
         await verifySignup(email, otp);
         navigate('/');
       }
     } catch (err) {
-      alert(err.response?.data?.message || 'Signup failed');
+      setError(err.response?.data?.message || 'Signup failed. Please try again.');
     }
   };
 
@@ -72,6 +78,12 @@ const Signup = () => {
               </div>
             )}
             
+            {error && (
+              <div className="text-sm text-red-500 bg-red-50 border border-red-100 rounded-xl px-4 py-2">
+                {error}
+              </div>
+            )}
+
             <button type="submit" className="w-full bg-brand-light text-brand-dark font-bold text-sm tracking-wider py-4 rounded-full mt-6 shadow-[0_10px_20px_rgba(94,209,155,0.3)] hover:-translate-y-0.5 transition-all">
               {step === 1 ? 'SIGN UP' : 'VERIFY OTP'}
             </button>

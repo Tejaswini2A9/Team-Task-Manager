@@ -45,13 +45,17 @@ exports.signup = async (req, res) => {
     }
 
     const message = `Your OTP for registration is: ${otp}. It is valid for 10 minutes.`;
-    await sendEmail({
+    const emailResult = await sendEmail({
       email: user.email,
       subject: 'Registration OTP - Team Task Manager',
       message,
+      otp, // used for console fallback if SMTP fails
     });
 
-    res.status(201).json({ message: 'OTP sent to your email. Please verify to complete registration.' });
+    res.status(201).json({
+      message: 'OTP sent to your email. Please verify to complete registration.',
+      emailSent: emailResult.success,
+    });
   } catch (error) {
     console.error('Signup Error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
@@ -110,13 +114,18 @@ exports.login = async (req, res) => {
     await user.save();
 
     const message = `Your OTP for login is: ${otp}. It is valid for 10 minutes.`;
-    await sendEmail({
+    const emailResult = await sendEmail({
       email: user.email,
       subject: 'Login OTP - Team Task Manager',
       message,
+      otp, // used for console fallback if SMTP fails
     });
 
-    res.json({ message: 'OTP sent to your email for login verification', email: user.email });
+    res.json({
+      message: 'OTP sent to your email for login verification',
+      email: user.email,
+      emailSent: emailResult.success,
+    });
   } catch (error) {
     console.error('Login Error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
@@ -161,7 +170,7 @@ exports.resendOTP = async (req, res) => {
     await user.save();
 
     const message = `Your new OTP is: ${otp}. It is valid for 10 minutes.`;
-    await sendEmail({ email: user.email, subject: 'Resend OTP - Team Task Manager', message });
+    await sendEmail({ email: user.email, subject: 'Resend OTP - Team Task Manager', message, otp });
 
     res.json({ message: 'New OTP sent to your email' });
   } catch (error) {
