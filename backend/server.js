@@ -26,6 +26,17 @@ app.use('/api/teams', teamRoutes);
 app.use('/api/tickets', ticketRoutes);
 app.use('/api/notifications', notificationRoutes);
 
+// Serve frontend static files
+const path = require('path');
+app.use(express.static(path.join(__dirname, '../frontend/dist')));
+
+// Catch-all route to serve the frontend index.html for SPA
+app.get('*', (req, res) => {
+  if (!req.path.startsWith('/api')) {
+    res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
+  }
+});
+
 const PORT = process.env.PORT || 5000;
 
 console.log('Connecting to database...');

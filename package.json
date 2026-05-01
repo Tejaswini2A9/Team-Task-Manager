@@ -1,0 +1,12 @@
+{
+  "name": "team-task-manager-root",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "build": "npm install --workspace=frontend && npm run build --workspace=frontend",
+    "start": "npm start --workspace=backend"
+  }
+}
