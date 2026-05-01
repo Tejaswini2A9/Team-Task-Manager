@@ -12,34 +12,46 @@ exports.signup = async (req, res) => {
     const { name, email, password, role } = req.body;
 
     let user = await User.findOne({ where: { email } });
-    if (user) {
-      return res.status(400).json({ message: 'User already exists' });
+
+    // If user exists and is already verified, block
+    if (user && user.isVerified) {
+      return res.status(400).json({ message: 'User already exists. Please log in.' });
     }
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
-
     const otp = generateOTP();
     const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-    user = await User.create({
-      name,
-      email,
-      password: hashedPassword,
-      role: role || 'Member',
-      otp,
-      otpExpiry,
-      isVerified: false,
-    });
+    if (user && !user.isVerified) {
+      // User exists but never verified — update their details and resend OTP
+      user.name = name;
+      user.password = hashedPassword;
+      user.role = role || 'Member';
+      user.otp = otp;
+      user.otpExpiry = otpExpiry;
+      await user.save();
+    } else {
+      // New user — create fresh record
+      user = await User.create({
+        name,
+        email,
+        password: hashedPassword,
+        role: role || 'Member',
+        otp,
+        otpExpiry,
+        isVerified: false,
+      });
+    }
 
     const message = `Your OTP for registration is: ${otp}. It is valid for 10 minutes.`;
     await sendEmail({
       email: user.email,
-      subject: 'Registration OTP',
+      subject: 'Registration OTP - Team Task Manager',
       message,
     });
 
-    res.status(201).json({ message: 'User registered. Please check your email for the OTP.' });
+    res.status(201).json({ message: 'OTP sent to your email. Please verify to complete registration.' });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });
@@ -88,10 +100,6 @@ exports.login = async (req, res) => {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
-    if (!user.isVerified) {
-      return res.status(400).json({ message: 'Please verify your email first. You can request a new OTP.' });
-    }
-
     if (role && user.role !== role) {
       return res.status(400).json({ message: `Access denied: You are not registered as an ${role}` });
     }
@@ -99,6 +107,11 @@ exports.login = async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ message: 'Invalid credentials' });
+    }
+
+    // If user is not verified (pre-OTP system users), auto-verify them on first successful login
+    if (!user.isVerified) {
+      user.isVerified = true;
     }
 
     const otp = generateOTP();
@@ -109,7 +122,7 @@ exports.login = async (req, res) => {
     const message = `Your OTP for login is: ${otp}. It is valid for 10 minutes.`;
     await sendEmail({
       email: user.email,
-      subject: 'Login OTP',
+      subject: 'Login OTP - Team Task Manager',
       message,
     });
 
