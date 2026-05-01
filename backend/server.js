@@ -30,10 +30,12 @@ app.use('/api/notifications', notificationRoutes);
 const path = require('path');
 app.use(express.static(path.join(__dirname, '../frontend/dist')));
 
-// Catch-all route to serve the frontend index.html for SPA
-app.get('(.*)', (req, res) => {
-  if (!req.path.startsWith('/api')) {
+// Catch-all to serve the frontend index.html for SPA (compatible with Express 5)
+app.use((req, res, next) => {
+  if (req.method === 'GET' && !req.path.startsWith('/api') && !req.path.includes('.')) {
     res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
+  } else {
+    next();
   }
 });
 
