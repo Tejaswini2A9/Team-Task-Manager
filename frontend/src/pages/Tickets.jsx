@@ -18,7 +18,7 @@ const Tickets = () => {
   const fetchTickets = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get('http://localhost:5000/api/tickets', {
+      const res = await axios.get('/api/tickets', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setTickets(res.data);
@@ -31,7 +31,7 @@ const Tickets = () => {
     e.preventDefault();
     try {
       const token = localStorage.getItem('token');
-      await axios.post('http://localhost:5000/api/tickets', { title, description, targetRole }, {
+      await axios.post('/api/tickets', { title, description, targetRole }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setTitle('');
@@ -47,7 +47,7 @@ const Tickets = () => {
   const handleResolve = async (id) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.put(`http://localhost:5000/api/tickets/${id}/resolve`, {}, {
+      await axios.put(`/api/tickets/${id}/resolve`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       fetchTickets();

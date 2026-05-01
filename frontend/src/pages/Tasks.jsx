@@ -17,7 +17,7 @@ const Tasks = () => {
   const fetchTasks = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get('http://localhost:5000/api/tasks', {
+      const res = await axios.get('/api/tasks', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setTasks(res.data);
@@ -39,7 +39,7 @@ const Tasks = () => {
   const handleStatusChange = async (taskId, newStatus) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.put(`http://localhost:5000/api/tasks/${taskId}/status`, { status: newStatus }, {
+      await axios.put(`/api/tasks/${taskId}/status`, { status: newStatus }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       fetchTasks();
@@ -133,7 +133,7 @@ const Tasks = () => {
                           if (!window.confirm('Delete this task?')) return;
                           try {
                             const token = localStorage.getItem('token');
-                            await axios.delete(`http://localhost:5000/api/tasks/${task.id}`, { headers: { Authorization: `Bearer ${token}` }});
+                            await axios.delete(`/api/tasks/${task.id}`, { headers: { Authorization: `Bearer ${token}` }});
                             fetchTasks();
                           } catch (err) { alert('Error deleting task'); }
                         }} className="p-1.5 text-gray-400 hover:text-red-500 bg-gray-50 rounded-full transition">
@@ -202,7 +202,7 @@ const Tasks = () => {
                               onClick={async () => {
                                 try {
                                   const token = localStorage.getItem('token');
-                                  await axios.put(`http://localhost:5000/api/tasks/${task.id}/progress`, {}, { headers: { Authorization: `Bearer ${token}` } });
+                                  await axios.put(`/api/tasks/${task.id}/progress`, {}, { headers: { Authorization: `Bearer ${token}` } });
                                   fetchTasks();
                                 } catch (err) { alert('Error updating progress'); }
                               }}

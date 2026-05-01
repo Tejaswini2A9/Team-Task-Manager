@@ -20,7 +20,7 @@ const Teams = () => {
   const fetchTeams = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get('http://localhost:5000/api/teams', {
+      const res = await axios.get('/api/teams', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setTeams(res.data);
@@ -32,7 +32,7 @@ const Teams = () => {
   const fetchUsers = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get('http://localhost:5000/api/auth/users', {
+      const res = await axios.get('/api/auth/users', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setUsers(res.data);
@@ -71,11 +71,11 @@ const Teams = () => {
       const payload = { name, leaderId, memberIds: selectedMembers };
 
       if (editingTeamId) {
-        await axios.put(`http://localhost:5000/api/teams/${editingTeamId}`, payload, {
+        await axios.put(`/api/teams/${editingTeamId}`, payload, {
           headers: { Authorization: `Bearer ${token}` }
         });
       } else {
-        await axios.post('http://localhost:5000/api/teams', payload, {
+        await axios.post('/api/teams', payload, {
           headers: { Authorization: `Bearer ${token}` }
         });
       }
@@ -95,7 +95,7 @@ const Teams = () => {
     if (!window.confirm('Are you sure you want to delete this team?')) return;
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`http://localhost:5000/api/teams/${id}`, {
+      await axios.delete(`/api/teams/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       fetchTeams();

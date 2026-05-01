@@ -10,7 +10,7 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
-      axios.get('http://localhost:5000/api/auth/me', {
+      axios.get('/api/auth/me', {
         headers: { Authorization: `Bearer ${token}` }
       }).then(res => {
         setUser(res.data);
@@ -25,23 +25,23 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = async (email, password, role) => {
-    const res = await axios.post('http://localhost:5000/api/auth/login', { email, password, role });
+    const res = await axios.post('/api/auth/login', { email, password, role });
     return res.data; // Returns message indicating OTP sent
   };
 
   const verifyLogin = async (email, otp) => {
-    const res = await axios.post('http://localhost:5000/api/auth/verify-login', { email, otp });
+    const res = await axios.post('/api/auth/verify-login', { email, otp });
     localStorage.setItem('token', res.data.token);
     setUser(res.data.user);
   };
 
   const signup = async (name, email, password, role) => {
-    const res = await axios.post('http://localhost:5000/api/auth/signup', { name, email, password, role });
+    const res = await axios.post('/api/auth/signup', { name, email, password, role });
     return res.data; // Returns message indicating OTP sent
   };
 
   const verifySignup = async (email, otp) => {
-    const res = await axios.post('http://localhost:5000/api/auth/verify-signup', { email, otp });
+    const res = await axios.post('/api/auth/verify-signup', { email, otp });
     localStorage.setItem('token', res.data.token);
     setUser(res.data.user);
   };

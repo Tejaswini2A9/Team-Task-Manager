@@ -26,25 +26,25 @@ const CreateTask = () => {
     const fetchData = async () => {
       try {
         const token = localStorage.getItem('token');
-        const projRes = await axios.get('http://localhost:5000/api/projects', { headers: { Authorization: `Bearer ${token}` } });
+        const projRes = await axios.get('/api/projects', { headers: { Authorization: `Bearer ${token}` } });
         setProjects(projRes.data);
         
         try {
-          const userRes = await axios.get('http://localhost:5000/api/auth/users', { headers: { Authorization: `Bearer ${token}` } });
+          const userRes = await axios.get('/api/auth/users', { headers: { Authorization: `Bearer ${token}` } });
           setUsers(userRes.data || []);
         } catch (e) {
           console.log('Could not fetch users', e);
         }
 
         try {
-          const teamRes = await axios.get('http://localhost:5000/api/teams', { headers: { Authorization: `Bearer ${token}` } });
+          const teamRes = await axios.get('/api/teams', { headers: { Authorization: `Bearer ${token}` } });
           setTeams(teamRes.data || []);
         } catch (e) {
           console.log('Could not fetch teams', e);
         }
 
         if (id) {
-          const taskRes = await axios.get('http://localhost:5000/api/tasks', { headers: { Authorization: `Bearer ${token}` } });
+          const taskRes = await axios.get('/api/tasks', { headers: { Authorization: `Bearer ${token}` } });
           const taskToEdit = taskRes.data.find(t => t.id === parseInt(id));
           if (taskToEdit) {
             setTitle(taskToEdit.title);
@@ -91,12 +91,12 @@ const CreateTask = () => {
       }
 
       if (id) {
-        await axios.put(`http://localhost:5000/api/tasks/${id}`, payload, {
+        await axios.put(`/api/tasks/${id}`, payload, {
           headers: { Authorization: `Bearer ${token}` }
         });
       } else {
         payload.status = 'To Do';
-        await axios.post('http://localhost:5000/api/tasks', payload, {
+        await axios.post('/api/tasks', payload, {
           headers: { Authorization: `Bearer ${token}` }
         });
       }

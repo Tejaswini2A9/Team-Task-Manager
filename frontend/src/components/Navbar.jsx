@@ -30,7 +30,7 @@ const Navbar = () => {
   const fetchNotifications = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get('http://localhost:5000/api/notifications', {
+      const res = await axios.get('/api/notifications', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setNotifications(res.data);
@@ -42,7 +42,7 @@ const Navbar = () => {
   const markAsRead = async () => {
     try {
       const token = localStorage.getItem('token');
-      await axios.put('http://localhost:5000/api/notifications/read', {}, {
+      await axios.put('/api/notifications/read', {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       fetchNotifications();

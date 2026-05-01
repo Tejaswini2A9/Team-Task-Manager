@@ -18,9 +18,9 @@ const Reports = () => {
       try {
         const token = localStorage.getItem('token');
         const [taskRes, userRes, projRes] = await Promise.all([
-          axios.get('http://localhost:5000/api/tasks', { headers: { Authorization: `Bearer ${token}` } }),
-          axios.get('http://localhost:5000/api/auth/users', { headers: { Authorization: `Bearer ${token}` } }).catch(() => ({ data: [] })),
-          axios.get('http://localhost:5000/api/projects', { headers: { Authorization: `Bearer ${token}` } })
+          axios.get('/api/tasks', { headers: { Authorization: `Bearer ${token}` } }),
+          axios.get('/api/auth/users', { headers: { Authorization: `Bearer ${token}` } }).catch(() => ({ data: [] })),
+          axios.get('/api/projects', { headers: { Authorization: `Bearer ${token}` } })
         ]);
         setTasks(taskRes.data);
         setUsers(userRes.data);

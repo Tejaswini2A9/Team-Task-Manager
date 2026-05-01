@@ -17,7 +17,7 @@ const Projects = () => {
   const fetchProjects = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get('http://localhost:5000/api/projects', {
+      const res = await axios.get('/api/projects', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setProjects(res.data);
@@ -46,11 +46,11 @@ const Projects = () => {
       const payload = { name, description };
 
       if (editingProjectId) {
-        await axios.put(`http://localhost:5000/api/projects/${editingProjectId}`, payload, {
+        await axios.put(`/api/projects/${editingProjectId}`, payload, {
           headers: { Authorization: `Bearer ${token}` }
         });
       } else {
-        await axios.post('http://localhost:5000/api/projects', payload, {
+        await axios.post('/api/projects', payload, {
           headers: { Authorization: `Bearer ${token}` }
         });
       }
@@ -66,7 +66,7 @@ const Projects = () => {
     if (!window.confirm('Are you sure you want to delete this project?')) return;
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`http://localhost:5000/api/projects/${id}`, {
+      await axios.delete(`/api/projects/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       fetchProjects();
