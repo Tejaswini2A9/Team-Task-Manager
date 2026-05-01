@@ -1,7 +1,7 @@
+const { User } = require('../models');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
-const User = require('../models/User');
 const sendEmail = require('../utils/sendEmail');
 require('dotenv').config();
 
@@ -53,8 +53,8 @@ exports.signup = async (req, res) => {
 
     res.status(201).json({ message: 'OTP sent to your email. Please verify to complete registration.' });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    console.error('Signup Error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
 
@@ -63,14 +63,8 @@ exports.verifySignup = async (req, res) => {
     const { email, otp } = req.body;
 
     const user = await User.findOne({ where: { email } });
-    if (!user) {
-      return res.status(400).json({ message: 'Invalid email' });
-    }
-
-    if (user.isVerified) {
-      return res.status(400).json({ message: 'User is already verified' });
-    }
-
+    if (!user) return res.status(400).json({ message: 'Invalid email' });
+    if (user.isVerified) return res.status(400).json({ message: 'User is already verified' });
     if (user.otp !== otp || user.otpExpiry < new Date()) {
       return res.status(400).json({ message: 'Invalid or expired OTP' });
     }
@@ -86,8 +80,8 @@ exports.verifySignup = async (req, res) => {
       res.json({ token, user: { id: user.id, name: user.name, email: user.email, role: user.role } });
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    console.error('VerifySignup Error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
 
@@ -96,27 +90,23 @@ exports.login = async (req, res) => {
     const { email, password, role } = req.body;
 
     const user = await User.findOne({ where: { email } });
-    if (!user) {
-      return res.status(400).json({ message: 'Invalid credentials' });
-    }
+    if (!user) return res.status(400).json({ message: 'Invalid credentials' });
 
     if (role && user.role !== role) {
       return res.status(400).json({ message: `Access denied: You are not registered as an ${role}` });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ message: 'Invalid credentials' });
-    }
+    if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
 
-    // If user is not verified (pre-OTP system users), auto-verify them on first successful login
+    // Auto-verify legacy users (created before OTP system) on first successful login
     if (!user.isVerified) {
       user.isVerified = true;
     }
 
     const otp = generateOTP();
     user.otp = otp;
-    user.otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    user.otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
     await user.save();
 
     const message = `Your OTP for login is: ${otp}. It is valid for 10 minutes.`;
@@ -128,8 +118,8 @@ exports.login = async (req, res) => {
 
     res.json({ message: 'OTP sent to your email for login verification', email: user.email });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    console.error('Login Error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
 
@@ -138,9 +128,7 @@ exports.verifyLogin = async (req, res) => {
     const { email, otp } = req.body;
 
     const user = await User.findOne({ where: { email } });
-    if (!user) {
-      return res.status(400).json({ message: 'Invalid credentials' });
-    }
+    if (!user) return res.status(400).json({ message: 'Invalid credentials' });
 
     if (user.otp !== otp || user.otpExpiry < new Date()) {
       return res.status(400).json({ message: 'Invalid or expired OTP' });
@@ -156,8 +144,8 @@ exports.verifyLogin = async (req, res) => {
       res.json({ token, user: { id: user.id, name: user.name, email: user.email, role: user.role } });
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    console.error('VerifyLogin Error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
 
@@ -165,9 +153,7 @@ exports.resendOTP = async (req, res) => {
   try {
     const { email } = req.body;
     const user = await User.findOne({ where: { email } });
-    if (!user) {
-      return res.status(400).json({ message: 'User not found' });
-    }
+    if (!user) return res.status(400).json({ message: 'User not found' });
 
     const otp = generateOTP();
     user.otp = otp;
@@ -175,25 +161,19 @@ exports.resendOTP = async (req, res) => {
     await user.save();
 
     const message = `Your new OTP is: ${otp}. It is valid for 10 minutes.`;
-    await sendEmail({
-      email: user.email,
-      subject: 'Resend OTP',
-      message,
-    });
+    await sendEmail({ email: user.email, subject: 'Resend OTP - Team Task Manager', message });
 
     res.json({ message: 'New OTP sent to your email' });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    console.error('ResendOTP Error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
 
 exports.getMe = async (req, res) => {
   try {
     const user = await User.findByPk(req.user.id, { attributes: ['id', 'name', 'email', 'role'] });
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
+    if (!user) return res.status(404).json({ message: 'User not found' });
     res.json(user);
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
