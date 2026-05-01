@@ -26,22 +26,12 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password, role) => {
     const res = await axios.post('/api/auth/login', { email, password, role });
-    return res.data; // Returns message indicating OTP sent
-  };
-
-  const verifyLogin = async (email, otp) => {
-    const res = await axios.post('/api/auth/verify-login', { email, otp });
     localStorage.setItem('token', res.data.token);
     setUser(res.data.user);
   };
 
   const signup = async (name, email, password, role) => {
     const res = await axios.post('/api/auth/signup', { name, email, password, role });
-    return res.data; // Returns message indicating OTP sent
-  };
-
-  const verifySignup = async (email, otp) => {
-    const res = await axios.post('/api/auth/verify-signup', { email, otp });
     localStorage.setItem('token', res.data.token);
     setUser(res.data.user);
   };
@@ -52,7 +42,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, verifyLogin, signup, verifySignup, logout, loading }}>
+    <AuthContext.Provider value={{ user, login, signup, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );

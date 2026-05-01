@@ -1,4 +1,8 @@
-const { Task, User, Project, Team, TaskMemberProgress } = require('../models');
+const Task = require('../models/Task');
+const User = require('../models/User');
+const Project = require('../models/Project');
+const Team = require('../models/Team');
+const TaskMemberProgress = require('../models/TaskMemberProgress');
 const { Op } = require('sequelize');
 
 exports.createTask = async (req, res) => {
@@ -7,7 +11,7 @@ exports.createTask = async (req, res) => {
     const task = await Task.create({
       title,
       description,
-      status: status || 'To Do',
+      status,
       priority: priority || 'Medium',
       estimatedHours: estimatedHours || 0,
       loggedHours: loggedHours || 0,
@@ -20,8 +24,11 @@ exports.createTask = async (req, res) => {
     if (teamId) {
       const team = await Team.findByPk(teamId, { include: [{ model: User, as: 'members' }] });
       if (team && team.members) {
-        const progressEntries = team.members.map(member => ({ taskId: task.id, userId: member.id }));
-        if (progressEntries.length > 0) await TaskMemberProgress.bulkCreate(progressEntries);
+        const progressEntries = team.members.map(member => ({
+          taskId: task.id,
+          userId: member.id,
+        }));
+        await TaskMemberProgress.bulkCreate(progressEntries);
       }
     }
 
@@ -41,7 +48,7 @@ exports.getTasks = async (req, res) => {
       whereClause = {
         [Op.or]: [
           { assigneeId: req.user.id },
-          { id: { [Op.in]: teamTaskIds.length ? teamTaskIds : [0] } }
+          { id: teamTaskIds }
         ]
       };
     }
@@ -51,17 +58,14 @@ exports.getTasks = async (req, res) => {
       include: [
         { model: User, as: 'assignee', attributes: ['id', 'name'] },
         { model: Project, attributes: ['id', 'name'] },
-        { model: Team, as: 'team', attributes: ['id', 'name', 'leaderId'],
-          include: [{ model: User, as: 'members', attributes: ['id', 'name'], through: { attributes: [] } }] },
-        { model: TaskMemberProgress, as: 'memberProgress',
-          include: [{ model: User, as: 'user', attributes: ['id', 'name'] }] }
-      ],
-      order: [['createdAt', 'DESC']],
+        { model: Team, as: 'team', attributes: ['id', 'name', 'leaderId'], include: [{ model: User, as: 'members', attributes: ['id', 'name'] }] },
+        { model: TaskMemberProgress, as: 'memberProgress', include: [{ model: User, as: 'user', attributes: ['id', 'name'] }] }
+      ]
     });
     res.json(tasks);
   } catch (error) {
     console.error('Get Tasks Error:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
@@ -70,12 +74,12 @@ exports.updateTaskStatus = async (req, res) => {
     const { status } = req.body;
     const task = await Task.findByPk(req.params.id);
     if (!task) return res.status(404).json({ message: 'Task not found' });
+    
     task.status = status;
     await task.save();
     res.json(task);
   } catch (error) {
-    console.error('Update Task Status Error:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
@@ -83,10 +87,13 @@ exports.updateTaskMemberProgress = async (req, res) => {
   try {
     const { taskId } = req.params;
     const userId = req.user.id;
+    
     const progress = await TaskMemberProgress.findOne({ where: { taskId, userId } });
     if (!progress) return res.status(404).json({ message: 'Progress record not found' });
+    
     progress.status = 'Completed';
     await progress.save();
+    
     res.json(progress);
   } catch (error) {
     console.error('Update Member Progress Error:', error);
@@ -98,10 +105,11 @@ exports.updateTask = async (req, res) => {
   try {
     const { id } = req.params;
     const { title, description, dueDate, assigneeId, teamId, projectId, status, priority, estimatedHours, loggedHours } = req.body;
+    
     const task = await Task.findByPk(id);
     if (!task) return res.status(404).json({ message: 'Task not found' });
-
-    if (title !== undefined) task.title = title;
+    
+    if (title) task.title = title;
     if (description !== undefined) task.description = description;
     if (dueDate !== undefined) task.dueDate = dueDate;
     if (assigneeId !== undefined) task.assigneeId = assigneeId;
@@ -111,7 +119,7 @@ exports.updateTask = async (req, res) => {
     if (priority !== undefined) task.priority = priority;
     if (estimatedHours !== undefined) task.estimatedHours = estimatedHours;
     if (loggedHours !== undefined) task.loggedHours = loggedHours;
-
+    
     await task.save();
     res.json(task);
   } catch (error) {
@@ -125,6 +133,7 @@ exports.deleteTask = async (req, res) => {
     const { id } = req.params;
     const task = await Task.findByPk(id);
     if (!task) return res.status(404).json({ message: 'Task not found' });
+    
     await task.destroy();
     res.json({ message: 'Task deleted successfully' });
   } catch (error) {

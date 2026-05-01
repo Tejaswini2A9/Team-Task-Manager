@@ -7,29 +7,16 @@ const Signup = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('Member');
-  const [otp, setOtp] = useState('');
-  const [step, setStep] = useState(1);
-  const { signup, verifySignup } = useContext(AuthContext);
+  const { signup } = useContext(AuthContext);
   const navigate = useNavigate();
-
-  const [error, setError] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
     try {
-      if (step === 1) {
-        const result = await signup(name, email, password, role);
-        if (!result.emailSent) {
-          setError('Account created but email delivery failed. Check server console for OTP.');
-        }
-        setStep(2);
-      } else {
-        await verifySignup(email, otp);
-        navigate('/');
-      }
+      await signup(name, email, password, role);
+      navigate('/');
     } catch (err) {
-      setError(err.response?.data?.message || 'Signup failed. Please try again.');
+      alert('Signup failed');
     }
   };
 
@@ -48,44 +35,28 @@ const Signup = () => {
         <div className="bg-white rounded-3xl p-8 sm:p-10 shadow-2xl">
           
           <form onSubmit={handleSubmit} className="space-y-4">
-            {step === 1 ? (
-              <>
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-1">Name</label>
-                  <input type="text" value={name} onChange={(e) => setName(e.target.value)} required className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-brand-light" placeholder="Jhon Steward" />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-1">Email</label>
-                  <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-brand-light" placeholder="your@email.com" />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-1">Password</label>
-                  <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-brand-light" placeholder="••••••••" />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-1">Role</label>
-                  <select value={role} onChange={(e) => setRole(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-brand-light">
-                    <option value="Member">Member</option>
-                    <option value="Admin">Admin</option>
-                  </select>
-                </div>
-              </>
-            ) : (
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-1">Enter OTP</label>
-                <p className="text-xs text-gray-500 mb-3">Please check your email for the verification code.</p>
-                <input type="text" value={otp} onChange={(e) => setOtp(e.target.value)} required className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-brand-light" placeholder="6-digit OTP" />
-              </div>
-            )}
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1">Name</label>
+              <input type="text" value={name} onChange={(e) => setName(e.target.value)} required className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-brand-light" placeholder="Jhon Steward" />
+            </div>
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1">Email</label>
+              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-brand-light" placeholder="your@email.com" />
+            </div>
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1">Password</label>
+              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-brand-light" placeholder="••••••••" />
+            </div>
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1">Role</label>
+              <select value={role} onChange={(e) => setRole(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-brand-light">
+                <option value="Member">Member</option>
+                <option value="Admin">Admin</option>
+              </select>
+            </div>
             
-            {error && (
-              <div className="text-sm text-red-500 bg-red-50 border border-red-100 rounded-xl px-4 py-2">
-                {error}
-              </div>
-            )}
-
             <button type="submit" className="w-full bg-brand-light text-brand-dark font-bold text-sm tracking-wider py-4 rounded-full mt-6 shadow-[0_10px_20px_rgba(94,209,155,0.3)] hover:-translate-y-0.5 transition-all">
-              {step === 1 ? 'SIGN UP' : 'VERIFY OTP'}
+              SIGN UP
             </button>
           </form>
           
