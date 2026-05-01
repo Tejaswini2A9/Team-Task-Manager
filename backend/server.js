@@ -31,7 +31,7 @@ const path = require('path');
 app.use(express.static(path.join(__dirname, '../frontend/dist')));
 
 // Catch-all route to serve the frontend index.html for SPA
-app.get('*', (req, res) => {
+app.get('(.*)', (req, res) => {
   if (!req.path.startsWith('/api')) {
     res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
   }
